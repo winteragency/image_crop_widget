@@ -14,8 +14,9 @@ import 'src/pan_gesture_recognizer.dart';
 
 class ImageCrop extends StatefulWidget {
   final ui.Image image;
+  final double aspectRatio;
 
-  ImageCrop({Key key, this.image})
+  ImageCrop({Key key, this.image, this.aspectRatio})
       : assert(image != null),
         super(key: key);
 
@@ -125,6 +126,17 @@ class ImageCropState extends State<ImageCrop> {
         CropAreaTouchHandler(cropArea: _state.cropArea);
   }
 
+  @override
+  void didUpdateWidget(Widget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _state.cropArea.initSizes(
+      center: _state.cropArea.cropRect.center, 
+      width: _state.cropArea.cropRect.height * widget.aspectRatio, 
+      height: _state.cropArea.cropRect.height, 
+      bounds: _state.imageContainingRect
+    );
+  }
+
   void _onPanUpdate(PointerEvent event) {
     _onUpdate(event.position);
   }
@@ -144,7 +156,7 @@ class ImageCropState extends State<ImageCrop> {
       color: Colors.black87,
       child: CustomPaint(
         painter: _ImagePainter(_state),
-        foregroundPainter: _OverlayPainter(_state),
+        foregroundPainter: _OverlayPainter(_state, widget.aspectRatio),
         child: RawGestureDetector(
           gestures: {
             PanGestureRecognizer:
@@ -169,7 +181,7 @@ class ImageCropState extends State<ImageCrop> {
     if (_state.lastTouchPosition == null) {
       _state.cropAreaTouchHandler.startTouch(_state.touchPosition);
     } else {
-      _state.cropAreaTouchHandler.updateTouch(_state.touchPosition);
+      _state.cropAreaTouchHandler.updateTouch(_state.touchPosition, widget.aspectRatio);
     }
 
     setState(() {});
@@ -239,13 +251,14 @@ class _ImagePainter extends CustomPainter {
 class _OverlayPainter extends CustomPainter {
   final _SharedCropState _state;
   final Rect _cropRect;
+  final double aspectRatio;
   final paintCorner = Paint()
     ..strokeWidth = 10.0
     ..strokeCap = StrokeCap.round
     ..color = Colors.white;
   final paintBackground = Paint()..color = Colors.white30;
 
-  _OverlayPainter(this._state) : _cropRect = _state.cropArea.cropRect;
+  _OverlayPainter(this._state, this.aspectRatio) : _cropRect = _state.cropArea.cropRect;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -254,15 +267,15 @@ class _OverlayPainter extends CustomPainter {
         bounds: _state.imageContainingRect,
         center: Offset(size.width / 2, size.height / 2),
         height: 100.0,
-        width: 100.0,
+        width: 100.0 * aspectRatio,
       );
     }
 
     canvas.drawRect(_state.cropArea.cropRect, paintBackground);
     final points = <Offset>[
-      _state.cropArea.cropRect.topLeft,
-      _state.cropArea.cropRect.topRight,
-      _state.cropArea.cropRect.bottomLeft,
+      // _state.cropArea.cropRect.topLeft,
+      // _state.cropArea.cropRect.topRight,
+      // _state.cropArea.cropRect.bottomLeft,
       _state.cropArea.cropRect.bottomRight
     ];
 

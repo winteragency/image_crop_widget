@@ -125,6 +125,11 @@ class CropArea {
       boundedRight,
       _cropRect.left + _cornerSize,
     ); // left bound
+
+    if(boundedRight != right) {
+      return -1;
+    }
+
     return boundedRight;
   }
 
@@ -137,6 +142,11 @@ class CropArea {
       boundedBottom,
       _cropRect.top + _cornerSize,
     ); // top bound
+
+    if(bottom != boundedBottom) {
+      return -1;
+    }
+
     return boundedBottom;
   }
 
@@ -150,7 +160,7 @@ class CropArea {
     _updateCorners();
   }
 
-  void moveTopRightCorner(Offset newPosition) {
+  void moveTopRightCorner(Offset newPosition, Offset startPosition) {
     _cropRect = Rect.fromLTRB(
       _cropRect.left,
       _applyTopBounds(newPosition.dy),
@@ -161,11 +171,18 @@ class CropArea {
   }
 
   void moveBottomRightCorner(Offset newPosition) {
+    double newRight = _applyRightBounds(newPosition.dx);
+    double newBottom = _applyBottomBounds(newPosition.dy);
+
+    if(newRight == -1 || newBottom == -1) {
+      return;
+    }
+
     _cropRect = Rect.fromLTRB(
       _cropRect.left,
       _cropRect.top,
-      _applyRightBounds(newPosition.dx),
-      _applyBottomBounds(newPosition.dy),
+      newRight,
+      newBottom,
     );
     _updateCorners();
   }
@@ -241,19 +258,24 @@ class CropArea {
     }
   }
 
-  void move(Offset position, Offset delta, CropActionArea actionArea) {
+  void move(Offset position, Offset startPosition, Offset delta, CropActionArea actionArea, double aspectRatio) {
     switch (actionArea) {
       case CropActionArea.top_left:
-        moveTopLeftCorner(position + delta);
+        // moveTopLeftCorner(position + delta);
         break;
       case CropActionArea.top_right:
-        moveTopRightCorner(position + delta);
+        // moveTopRightCorner(position + delta, delta);
         break;
       case CropActionArea.bottom_right:
+        double dx = (position - startPosition).dx;
+        double dy = (position - startPosition).dy;
+        double d = max(dx, dy);
+        position = startPosition + Offset(d * aspectRatio, d);
+
         moveBottomRightCorner(position + delta);
         break;
       case CropActionArea.bottom_left:
-        moveBottomLeftCorner(position + delta);
+        // moveBottomLeftCorner(position + delta);
         break;
       case CropActionArea.center:
         moveArea(position + delta);
