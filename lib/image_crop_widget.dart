@@ -130,7 +130,7 @@ class ImageCropState extends State<ImageCrop> {
   void didUpdateWidget(Widget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _state.cropArea.initSizes(
-      center: Offset(_state.widgetSize.width / 2, _state.widgetSize.height),
+      center: Offset(_state.imageContainingRect.width / 2, _state.imageContainingRect.height / 2),
       height: 100.0,
       width: 100.0 * widget.aspectRatio,      
     bounds: _state.imageContainingRect
