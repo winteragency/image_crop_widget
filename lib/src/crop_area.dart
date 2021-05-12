@@ -9,7 +9,7 @@ import 'package:flutter/foundation.dart';
 
 class CropArea {
   final double _cornerSize;
-  Rect _bounds;
+  Rect bounds;
   Rect _cropRect;
   Rect _topLeftCorner;
   Rect _topRightCorner;
@@ -26,7 +26,7 @@ class CropArea {
     @required double height,
     @required Rect bounds,
   }) {
-    _bounds = bounds;
+    bounds = bounds;
     _cropRect = Rect.fromCenter(center: center, width: width, height: height);
     _updateCorners();
   }
@@ -72,20 +72,20 @@ class CropArea {
     );
 
     var offset = Offset(0.0, 0.0);
-    if (newRect.left < _bounds.left) {
-      offset = offset.translate(_bounds.left - newRect.left, 0.0);
+    if (newRect.left < bounds.left) {
+      offset = offset.translate(bounds.left - newRect.left, 0.0);
     }
 
-    if (newRect.top < _bounds.top) {
-      offset = offset.translate(0.0, _bounds.top - newRect.top);
+    if (newRect.top < bounds.top) {
+      offset = offset.translate(0.0, bounds.top - newRect.top);
     }
 
-    if (newRect.right > _bounds.right) {
-      offset = offset.translate(_bounds.right - newRect.right, 0.0);
+    if (newRect.right > bounds.right) {
+      offset = offset.translate(bounds.right - newRect.right, 0.0);
     }
 
-    if (newRect.bottom > _bounds.bottom) {
-      offset = offset.translate(0.0, _bounds.bottom - newRect.bottom);
+    if (newRect.bottom > bounds.bottom) {
+      offset = offset.translate(0.0, bounds.bottom - newRect.bottom);
     }
 
     _cropRect = newRect.shift(offset);
@@ -95,7 +95,7 @@ class CropArea {
   double _applyLeftBounds(double left) {
     var boundedLeft = max(
       left,
-      _bounds.left,
+      bounds.left,
     ); // left bound
     boundedLeft = min(
       boundedLeft,
@@ -107,7 +107,7 @@ class CropArea {
   double _applyTopBounds(double top) {
     var boundedTop = max(
       top,
-      _bounds.top,
+      bounds.top,
     ); // top bound
     boundedTop = min(
       boundedTop,
@@ -119,7 +119,7 @@ class CropArea {
   double _applyRightBounds(double right) {
     var boundedRight = min(
       right,
-      _bounds.right,
+      bounds.right,
     ); // right bound
     boundedRight = max(
       boundedRight,
@@ -136,7 +136,7 @@ class CropArea {
   double _applyBottomBounds(double bottom) {
     var boundedBottom = min(
       bottom,
-      _bounds.bottom,
+      bounds.bottom,
     ); // bottom bound
     boundedBottom = max(
       boundedBottom,

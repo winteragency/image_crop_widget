@@ -68,6 +68,100 @@ class ImageCropState extends State<ImageCrop> {
     setState(() {
       _state.image = newImage;
     });
+
+    _state.imageSize = Size(
+      _state.image.width.toDouble(),
+      _state.image.height.toDouble(),
+    );
+    _state.fittedImageSize = applyBoxFit(
+      BoxFit.contain,
+      _state.imageSize,
+      _state.widgetSize
+    );
+    _state.horizontalSpacing =
+        (_state.widgetSize.width - _state.fittedImageSize.destination.width) / 2;
+    _state.verticalSpacing =
+        (_state.widgetSize.height - _state.fittedImageSize.destination.height) /
+            2;
+
+    _state.imageContainingRect = Rect.fromLTWH(
+        _state.horizontalSpacing,
+        _state.verticalSpacing,
+        _state.fittedImageSize.destination.width,
+        _state.fittedImageSize.destination.height);
+
+    _state.cropArea.initSizes(
+      center: Offset(_state.imageContainingRect.left + (0.5 * 100 * widget.aspectRatio), _state.imageContainingRect.top + 50),
+      height: 100.0,
+      width: 100.0 * widget.aspectRatio,
+    bounds: _state.imageContainingRect
+    );
+    setState(() => {});
+  }
+
+  Future<void> rotateCounterClockwise() async {
+    Future rotate() async {
+      final image = _state.image;
+      ui.Image newImage;
+      var pixel = 0;
+      var attempts = 0;
+
+      do {
+        final recorder = ui.PictureRecorder();
+        final canvas = Canvas(recorder);
+
+        canvas.rotate(pi / 2.0);
+        canvas.translate(0.0, -image.height.toDouble());
+        canvas.drawImage(image, Offset.zero, Paint());
+
+        final picture = recorder.endRecording();
+        newImage = await picture.toImage(image.height, image.width);
+        picture.dispose();
+
+        final newByteData = await newImage.toByteData();
+        try {
+          pixel = newByteData.getUint8(newByteData.lengthInBytes - 1);
+        } catch (e) {
+          print(e);
+        }
+
+        attempts++;
+      } while (pixel == 0 && attempts < 4);
+      _state.image = newImage;
+    }
+
+    await rotate();
+    await rotate();
+    await rotate();
+
+    _state.imageSize = Size(
+      _state.image.width.toDouble(),
+      _state.image.height.toDouble(),
+    );
+    _state.fittedImageSize = applyBoxFit(
+      BoxFit.contain,
+      _state.imageSize,
+      _state.widgetSize
+    );
+    _state.horizontalSpacing =
+        (_state.widgetSize.width - _state.fittedImageSize.destination.width) / 2;
+    _state.verticalSpacing =
+        (_state.widgetSize.height - _state.fittedImageSize.destination.height) /
+            2;
+
+    _state.imageContainingRect = Rect.fromLTWH(
+        _state.horizontalSpacing,
+        _state.verticalSpacing,
+        _state.fittedImageSize.destination.width,
+        _state.fittedImageSize.destination.height);
+
+    _state.cropArea.initSizes(
+      center: Offset(_state.imageContainingRect.left + (0.5 * 100 * widget.aspectRatio), _state.imageContainingRect.top + 50),
+      height: 100.0,
+      width: 100.0 * widget.aspectRatio,
+    bounds: _state.imageContainingRect
+    );
+    setState(() => {});
   }
 
   /// Crops the image to the currently marked area.
@@ -130,9 +224,9 @@ class ImageCropState extends State<ImageCrop> {
   void didUpdateWidget(Widget oldWidget) {
     super.didUpdateWidget(oldWidget);
     _state.cropArea.initSizes(
-      center: Offset(_state.imageContainingRect.width / 2, _state.imageContainingRect.height / 2),
+      center: Offset(_state.imageContainingRect.left + (0.5 * 100 * widget.aspectRatio), _state.imageContainingRect.top + 50),
       height: 100.0,
-      width: 100.0 * widget.aspectRatio,      
+      width: 100.0 * widget.aspectRatio,
     bounds: _state.imageContainingRect
     );
   }
@@ -235,6 +329,7 @@ class _ImagePainter extends CustomPainter {
     state.verticalSpacing =
         (state.widgetSize.height - state.fittedImageSize.destination.height) /
             2;
+
     state.imageContainingRect = Rect.fromLTWH(
         state.horizontalSpacing,
         state.verticalSpacing,
@@ -271,11 +366,10 @@ class _OverlayPainter extends CustomPainter {
       );
     }
 
+    _state.cropArea.bounds = _state.imageContainingRect;
+
     canvas.drawRect(_state.cropArea.cropRect, paintBackground);
     final points = <Offset>[
-      // _state.cropArea.cropRect.topLeft,
-      // _state.cropArea.cropRect.topRight,
-      // _state.cropArea.cropRect.bottomLeft,
       _state.cropArea.cropRect.bottomRight
     ];
 
